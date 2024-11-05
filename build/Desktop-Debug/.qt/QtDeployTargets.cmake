@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_Language_app_qt_FILE /home/patryk/Language_app_qt/build/Desktop-Debug/Language_app_qt)
+set(__QT_DEPLOY_TARGET_Language_app_qt_TYPE EXECUTABLE)
