@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
+#include <QGridLayout>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,7 +19,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void addFlashcard();
+    void removeFlashcard();
 private:
     Ui::MainWindow *ui;
+    QGridLayout *gridLayout;
+    int rowCount;
+    int colCount;
 };
 #endif // MAINWINDOW_H
