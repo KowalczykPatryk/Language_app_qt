@@ -4,12 +4,8 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QGridLayout>
-
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
-QT_END_NAMESPACE
+#include <QComboBox>
+#include "DBManager.h"
 
 class MainWindow : public QMainWindow
 {
@@ -17,14 +13,17 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
 
 private slots:
-    void addFlashcard();
-    void removeFlashcard();
+    void addDeck();
+    void removeDeck();
 private:
-    Ui::MainWindow *ui;
+    void initializeDeckTable();
+    DBManager dbManager;
+    void loadDecks();
+    QMap<int, QWidget*> deckWidgets;
     QGridLayout *gridLayout;
+    QComboBox *comboBox;
     int rowCount;
     int colCount;
 };
