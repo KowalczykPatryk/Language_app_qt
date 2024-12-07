@@ -14,6 +14,8 @@ public:
     bool connect();
     QSqlQuery executeQuery(const QString& query);
     QSqlQuery executeQuery(const QString& query, const QVariantList& values);
+    bool addFlashcard(int deckId, const QString &frontName, const QString &backName);
+    QSqlQuery fetchFlashcards(int deckId);
 private:
     QSqlDatabase db;
     QString dbHost;

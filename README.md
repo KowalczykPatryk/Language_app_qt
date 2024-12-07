@@ -44,12 +44,19 @@ This is a simple Flashcards application built using Qt. The application allows u
 - **Query Execution**: SQL queries are executed to create tables, insert decks, and retrieve decks.
 - **Error Handling**: Detailed error messages are logged to help identify and troubleshoot issues during database operations.
 
+### Flashcards Managment
 
-## Future Enhancements
+- **Adding Flashcards**: The application allows users to add new flashcards by prompting for both the front (question) and back (answer) names using QInputDialog. These flashcards are then inserted into the flashcards table with an associated deck_id.
+- **Displaying Random Flashcards**: The application can display a random flashcard from a specific deck. It queries the database for all flashcards in the deck, selects a random flashcard, and displays the question side.
+- **Checking Answers**: Users can reveal the answer to the displayed flashcard by clicking a button, which shows the previously hidden answer side of the flashcard.
+- **Navigating Flashcards**: Users can navigate to the next random flashcard within the same deck by clicking a "Next Flashcard" button, which fetches and displays another random flashcard from the deck.
 
-- **Flashcard Management**: Adding functionality to manage individual flashcards within each deck.
-- **Enhanced UI**: Improving the user interface with additional features and better styling.
-- **Create Language Exercises**: User is prompted to fill in the gap with the correct answear based on his current deck
+### Running Flask Python Server 
+- **Flask Integration**: The application integrates with a Flask server to handle specific requests and processes. 
+- **Server Management**: The server is started when the application requires it and is shut down gracefully when the application exits. This ensures efficient resource management and avoids port conflicts. 
+- **Ollama and llama3**: The Flask server uses the `llama3` model through Ollama to generate responses for custom exercises. The server processes user inputs and returns relevant responses using this model.
 
-
-
+### Displaying Custom Exercises 
+- **Custom Exercise Display**: The application can display custom exercises by communicating with the Flask server. The user inputs are sent to the server, which uses the `llama3` model to generate appropriate responses. 
+- **Interactive UI**: The generated response is displayed in the application, and the user can interact with it by providing the correct answers or engaging in further exercises. 
+- **Real-Time Processing**: The application ensures real-time processing of user inputs and server responses, providing a seamless and interactive learning experience.

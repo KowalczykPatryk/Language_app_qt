@@ -52,3 +52,34 @@ QSqlQuery DBManager::executeQuery(const QString& query)
     return q;
 }
 
+bool DBManager::addFlashcard(int deckId, const QString &frontName, const QString &backName) {
+    QString insertQuery = "INSERT INTO flashcards (deck_id, frontSide, backSide) VALUES (:deck_id, :question, :answer)";
+    QSqlQuery query;
+    query.prepare(insertQuery);
+    query.bindValue(":deck_id", deckId);
+    query.bindValue(":question", frontName);
+    query.bindValue(":answer", backName);
+
+    if (!query.exec()) {
+        qDebug() << "Failed to insert flashcard:" << query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+QSqlQuery DBManager::fetchFlashcards(int deckId)
+{
+    // Fetch all flashcards for the given deckId from the database
+    QString selectQuery = "SELECT frontSide, backSide FROM flashcards WHERE deck_id = :deck_id";
+    QSqlQuery query;
+    query.prepare(selectQuery);
+    query.bindValue(":deck_id", deckId);
+
+    if (!query.exec()) {
+        qDebug() << "Failed to retrieve flashcards:" << query.lastError().text();
+        return query;
+    }
+    return query;
+}
+
+
