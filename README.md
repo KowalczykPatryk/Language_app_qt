@@ -60,3 +60,6 @@ This is a simple Flashcards application built using Qt. The application allows u
 - **Custom Exercise Display**: The application can display custom exercises by communicating with the Flask server. The user inputs are sent to the server, which uses the `llama3` model to generate appropriate responses. 
 - **Interactive UI**: The generated response is displayed in the application, and the user can interact with it by providing the correct answers or engaging in further exercises. 
 - **Real-Time Processing**: The application ensures real-time processing of user inputs and server responses, providing a seamless and interactive learning experience.
+- **Displaying Information Before Server Responds**: The text with changing number of dots shows that exercise is being generated
+### Styling the widgets 
+- **Improving visual aspect**: By using `setStyleSheet` like css syntax can be used.

@@ -10,7 +10,7 @@ def get_request():
     data = request.get_json()
     front_side = data.get('front_side')
     back_side = data.get('back_side')
-    response_message = prompt_olama(f'Please create a sentence using the word {front_side}, but output it with this word replaces by _ and output only this sentence')
+    response_message = prompt_olama(f'Please create a sentence using the word "{front_side}", but output it with this word replaces by "_" and output only this sentence')
     response = {"response": response_message}
     return jsonify(response)
 

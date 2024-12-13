@@ -1,25 +1,38 @@
 #include "mainwindow.h"
+
+// Qt Core
+#include <QApplication>
+#include <QDir>
+#include <QProcess>
+#include <QThread>
+
+// Qt Widgets
 #include <QPushButton>
 #include <QToolBar>
 #include <QScrollArea>
 #include <QInputDialog>
-#include <QPointer>
+#include <QVBoxLayout>
+
+// Qt SQL
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QDebug>
-#include <QMessageBox>
-#include <QRandomGenerator>
-#include <QVBoxLayout>
+
+// Qt Network
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QProcess>
-#include <QThread>
-#include <QDir>
-#include <QApplication>
+
+// Qt Utilities
+#include <QPointer>
+#include <QMessageBox>
+#include <QRandomGenerator>
+#include <QDebug>
+#include <QTimer>
+
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -38,44 +51,65 @@ MainWindow::MainWindow(QWidget *parent)
     // Set the size of the main window
     resize(600,800);
 
-    // Create a scroll area and set its properties
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setWidgetResizable(true);
-    setCentralWidget(scrollArea);
-
-    // Create a container widget for the scroll area
-    QWidget *containerWidget = new QWidget();
-    scrollArea->setWidget(containerWidget);
-
-    // Create a grid layout for the container widget
-    gridLayout = new QGridLayout();
-    containerWidget->setLayout(gridLayout);
-
-    // Create toolbar
-    QToolBar *toolBar = addToolBar("Flashcard Decks Controls");
-
-    // Example buttons for adding and removing decks of flashcards
-    QPushButton *addDeckButton = new QPushButton("Add Deck");
-    QPushButton *removeDeckButton = new QPushButton("Remove Deck");
-    comboBox = new QComboBox(); // ComboBox for selecting decks
-
-    // Add buttons to the toolbar
-    toolBar->addWidget(addDeckButton);
-    toolBar->addWidget(removeDeckButton);
-    toolBar->addWidget(comboBox);
-
-    connect(addDeckButton, &QPushButton::clicked, this, &MainWindow::addDeck);
-    connect(removeDeckButton, &QPushButton::clicked, this, &MainWindow::removeDeck);
-
-    connect(this, &MainWindow::responseReady, this, &MainWindow::handleResponse);
+    setupMainLayout();
 
     connect(QApplication::instance(), &QApplication::aboutToQuit, this, &MainWindow::shutDownServer);
 
     // Call loadDecks to load and display decks from the database
     loadDecks();
+}
 
-    // Set the scroll area as the central widget
-    setCentralWidget(scrollArea);
+void MainWindow::setupMainLayout() {
+    // using static to ensure being seen after backButton clicked, and not rendered again
+    static QScrollArea *scrollArea = nullptr;
+    static QWidget *containerWidget = nullptr;
+    static QToolBar *toolBar = nullptr; // Static toolbar
+
+    if (!scrollArea) {
+        scrollArea = new QScrollArea();
+        scrollArea->setWidgetResizable(true);
+        setCentralWidget(scrollArea);
+
+        containerWidget = new QWidget();
+        scrollArea->setWidget(containerWidget);
+
+        gridLayout = new QGridLayout();
+        containerWidget->setLayout(gridLayout);
+    } else {
+        clearGridLayout();
+    }
+
+    if (!toolBar) {
+        toolBar = addToolBar("Flashcard Decks Controls");
+        toolBar->setObjectName("Flashcard Decks Controls");
+
+        // Create and add buttons to the toolbar
+        QPushButton *addDeckButton = new QPushButton("Add Deck");
+        QPushButton *removeDeckButton = new QPushButton("Remove Deck");
+        comboBox = new QComboBox(); // ComboBox for selecting decks
+
+        toolBar->addWidget(addDeckButton);
+        toolBar->addWidget(removeDeckButton);
+        toolBar->addWidget(comboBox);
+
+        connect(addDeckButton, &QPushButton::clicked, this, &MainWindow::addDeck);
+        connect(removeDeckButton, &QPushButton::clicked, this, &MainWindow::removeDeck);
+    }
+}
+
+
+void MainWindow::clearGridLayout() {
+    while (QLayoutItem *item = gridLayout->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+}
+
+void MainWindow::showMainView() {
+
+    clearGridLayout();
+    setupMainLayout();
+    loadDecks();
 }
 
 void MainWindow::initializeDeckTable()
@@ -121,6 +155,9 @@ void MainWindow::initializeFlashcardsTable()
 
 void MainWindow::loadDecks()
 {
+    // ensures that we start from the begining
+    colCount = 0;
+    rowCount = 0;
     // Retrieve the decks from the database
     QString selectQuery = "SELECT name, id FROM decks";
     QSqlQuery query = dbManager.executeQuery(selectQuery);
@@ -133,7 +170,19 @@ void MainWindow::loadDecks()
         newDeck->setText(deckName);
         newDeck->setAlignment(Qt::AlignCenter);
         newDeck->setFrameStyle(QFrame::Panel | QFrame::Raised);
-        newDeck->setStyleSheet("background-color: lightgray;");
+        //styling using css like syntax
+        newDeck->setStyleSheet("ClickableLabel {"
+                               "background-color: #2e2e2e;"
+                               "color: #f0f0f0;"
+                               "border: 2px solid #8f8f91;"
+                               "border-radius: 10px;"
+                               "padding: 10px;"
+                               "font: bold 14px;"
+                               "}"
+                               "ClickableLabel:hover {"
+                               "background-color: #1e1e1e;"
+                               "color: #c0c0c0;"
+                               "}");
         // Set fixed size for the deck
         newDeck->setFixedSize(180, 120);
         // Example grid positioning logic
@@ -153,7 +202,6 @@ void MainWindow::loadDecks()
         connect(newDeck, &ClickableLabel::clicked, this, &MainWindow::showOptions);
     }
 }
-
 
 void MainWindow::addDeck()
 {
@@ -185,7 +233,18 @@ void MainWindow::addDeck()
         newDeck->setText(deckName);
         newDeck->setAlignment(Qt::AlignCenter);
         newDeck->setFrameStyle(QFrame::Panel | QFrame::Raised);
-        newDeck->setStyleSheet("background-color: lightgray;");
+        newDeck->setStyleSheet("ClickableLabel {"
+                               "background-color: #2e2e2e;"
+                               "color: #f0f0f0;"
+                               "border: 2px solid #8f8f91;"
+                               "border-radius: 10px;"
+                               "padding: 10px;"
+                               "font: bold 14px;"
+                               "}"
+                               "ClickableLabel:hover {"
+                               "background-color: #1e1e1e;"
+                               "color: #c0c0c0;"
+                               "}");
         // Set fixed size for the deck
         newDeck->setFixedSize(180, 120);
         // Example grid positioning logic
@@ -316,6 +375,7 @@ void MainWindow::addFlashcard(int deckId)
     }
 }
 
+
 void MainWindow::showFlashcards(int deckId)
 {
     // Clear the grid layout
@@ -345,7 +405,34 @@ void MainWindow::showFlashcards(int deckId)
     // Create labels for question and answer
     QLabel *questionLabel = new QLabel(flashcardWidget);
     QLabel *answerLabel = new QLabel(flashcardWidget);
+    // Style the question label
+    questionLabel->setStyleSheet("QLabel {"
+                           "background-color: #2e2e2e;"
+                           "color: #f0f0f0;"
+                           "border: 2px solid #8f8f91;"
+                           "border-radius: 10px;"
+                           "padding: 10px;"
+                           "font: bold 14px;"
+                           "}");
+
+    // Style the answer label
+
+    answerLabel->setStyleSheet("QLabel {"
+                                 "background-color: #2e2e2e;"
+                                 "color: #f0f0f0;"
+                                 "border: 2px solid #8f8f91;"
+                                 "border-radius: 10px;"
+                                 "padding: 10px;"
+                                 "font: bold 14px;"
+                                 "}");
+
     answerLabel->setVisible(false); // Initially hide the answer
+
+    QPushButton *backButton = new QPushButton("Back", this);
+    backButton->setFixedWidth(40);
+    connect(backButton, &QPushButton::clicked, this, &MainWindow::showMainView);
+
+    layout->addWidget(backButton);
 
     // Center the text in the labels
     questionLabel->setAlignment(Qt::AlignCenter);
@@ -395,9 +482,8 @@ void MainWindow::showFlashcards(int deckId)
     connect(showAnswerButton, &QPushButton::clicked, this, [=]() { answerLabel->setVisible(true); });
 }
 
-void MainWindow::promptOllama(const QString &frontSide, const QString &backSide)
+void MainWindow::promptOllama(const QString &frontSide, const QString &backSide, QLabel *sentenceLabel, std::function<void()>onResponse)
 {
-
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     QUrl url("http://localhost:8000/prompt/");
     QNetworkRequest request(url);
@@ -412,7 +498,7 @@ void MainWindow::promptOllama(const QString &frontSide, const QString &backSide)
 
     QNetworkReply *reply = manager->post(request, data);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, sentenceLabel, onResponse]() {
         if (reply->error() == QNetworkReply::NoError) {
             QByteArray response_data = reply->readAll();
             QJsonDocument response_doc = QJsonDocument::fromJson(response_data);
@@ -420,19 +506,15 @@ void MainWindow::promptOllama(const QString &frontSide, const QString &backSide)
             QString response_text = response_obj["response"].toString();
             ollamaResponse = response_text;
             qDebug() << "Ollama's response:" << response_text;
+            sentenceLabel->setText(response_text);  // Update the text with the server response
         } else {
             qDebug() << "Error:" << reply->errorString();
         }
-        emit responseReady();
         reply->deleteLater();
+        onResponse();
     });
 }
 
-void MainWindow::handleResponse()
-{
-    // Exit the event loop once the response is received
-    eventLoop.quit();
-}
 
 void MainWindow::showCustomExercise(int deckId)
 {
@@ -451,39 +533,55 @@ void MainWindow::showCustomExercise(int deckId)
     const auto &flashcard = flashcards[randomIndex];
     QString frontSide = flashcard.first;
     QString backSide = flashcard.second;
-    promptOllama(frontSide, backSide);
 
-    // Wait for the response to be handled
-    eventLoop.exec();
-
-    // Now ollamaResponse contains the response and can be used
-    qDebug() << "Response to be used in showCustomExercise: " << ollamaResponse;
-
-    // Set up the UI to display the sentence with a gap and prompt user input
-    QLabel *sentenceLabel = new QLabel(ollamaResponse, this);
+    QLabel *sentenceLabel = new QLabel("Generating custom task", this);
     QLineEdit *inputEdit = new QLineEdit(this);
     QPushButton *submitButton = new QPushButton("Submit", this);
+    QPushButton *nextButton = new QPushButton("Next Exercise", this);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(sentenceLabel);
     layout->addWidget(inputEdit);
     layout->addWidget(submitButton);
+    layout->addWidget(nextButton);
 
     QWidget *centralWidget = new QWidget(this);
     centralWidget->setLayout(layout);
     setCentralWidget(centralWidget);
 
-    // Connect the submit button to the slot for checking the answer
-    connect(submitButton, &QPushButton::clicked, this, [=]() {
-        QString userInput = inputEdit->text().trimmed();
-        if (userInput.compare(frontSide, Qt::CaseInsensitive) == 0) {
-            QMessageBox::information(this, "Correct!", "Well done, that's the right word!");
-        } else {
-            QMessageBox::warning(this, "Incorrect", "Oops! Try again.");
-        }
+    // Animate the dots
+    QTimer *timer = new QTimer(this);
+    dotCount = 0;
+    connect(timer, &QTimer::timeout, this, [this, sentenceLabel]() mutable {
+        dotCount = (dotCount + 1) % 4;  // Cycle through 0, 1, 2, 3
+        QString dots(dotCount, '.');
+        sentenceLabel->setText("Generating custom task" + dots);
     });
+    timer->start(500);  // Update every 500 milliseconds
 
+    promptOllama(frontSide, backSide, sentenceLabel, [this,frontSide,deckId, nextButton, sentenceLabel, inputEdit, submitButton, layout, timer]() {
+        // Stop the animation timer
+        timer->stop();
+        delete timer;
+
+        // Update layout with the response
+        QString responseText = sentenceLabel->text();
+        sentenceLabel->setText(responseText);
+
+        // Connect the submit button to the slot for checking the answer
+        connect(submitButton, &QPushButton::clicked, this, [=]() {
+            QString userInput = inputEdit->text().trimmed();
+            if (userInput.compare(frontSide, Qt::CaseInsensitive) == 0) {
+                QMessageBox::information(this, "Correct!", "Well done, that's the right word!");
+            } else {
+                QMessageBox::warning(this, "Incorrect", "Oops! Try again.");
+            }
+        });
+        // Connect the next button to start a new custom exercise
+        connect(nextButton, &QPushButton::clicked, this, [=]() { showCustomExercise(deckId); });
+    });
 }
+
 
 bool MainWindow::isServerRunning()
 {
@@ -557,6 +655,9 @@ void MainWindow::shutDownServer()
         qDebug() << "No process found on port 8000";
     }
 }
+
+
+
 
 
 

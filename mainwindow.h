@@ -23,15 +23,18 @@ signals:
 private slots:
     void addDeck();
     void removeDeck();
-    void handleResponse();
+    void showMainView();
 private:
+    int dotCount = 0;
+    void clearGridLayout();
+    void setupMainLayout();
     void initializeDeckTable();
     void initializeFlashcardsTable();
     void showOptions();
     void addFlashcard(int deckId);
     void showFlashcards(int deckId);
     void showCustomExercise(int deckId);
-    void promptOllama(const QString &frontSide, const QString &backSide);
+    void promptOllama(const QString &frontSide, const QString &backSide, QLabel *sentenceLabel, std::function<void()> onResponse);
     void runServer();
     bool isServerRunning();
     void shutDownServer();
